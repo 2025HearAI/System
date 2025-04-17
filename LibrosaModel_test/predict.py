@@ -21,6 +21,6 @@ def predict_emotion(file_path, model_path="models/emotion_cnn.pth"):
 
 # 예측 테스트
 if __name__ == "__main__":
-    test_file = "data/happy_test.wav"
+    test_file = "data/YAF_bite_sad.wav"
     result = predict_emotion(test_file)
     print(f"🔊 감정 예측 결과: {result}")

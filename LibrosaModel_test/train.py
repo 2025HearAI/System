@@ -1,3 +1,5 @@
+# train.py
+
 import os
 import torch
 import torch.nn as nn
@@ -5,10 +7,23 @@ from torch.utils.data import Dataset, DataLoader
 from features import extract_features
 from model import CNNEmotionClassifier
 
+# 감정 클래스와 폴더 매핑
+EMOTION_LABELS = {
+    "happy": 0,
+    "sad": 1,
+    "angry": 2
+}
+
 class EmotionDataset(Dataset):
-    def __init__(self, file_paths, labels):
-        self.file_paths = file_paths
-        self.labels = labels
+    def __init__(self, data_dir):
+        self.file_paths = []
+        self.labels = []
+        for emotion, label in EMOTION_LABELS.items():
+            emotion_dir = os.path.join(data_dir, emotion)
+            for file_name in os.listdir(emotion_dir):
+                if file_name.endswith(".wav"):
+                    self.file_paths.append(os.path.join(emotion_dir, file_name))
+                    self.labels.append(label)
 
     def __len__(self):
         return len(self.file_paths)
@@ -20,18 +35,14 @@ class EmotionDataset(Dataset):
         return feature, label
 
 def train():
-    # 예시용 오디오 파일 경로와 레이블
-    file_paths = ["data/happy.wav", "data/sad.wav", "data/angry.wav"]
-    labels = [0, 1, 2]  # 감정 클래스 인덱스
+    dataset = EmotionDataset(data_dir="data")  # data/happy/, data/sad/, data/angry/
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
 
-    dataset = EmotionDataset(file_paths, labels)
-    dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
-
-    model = CNNEmotionClassifier(num_classes=3)
+    model = CNNEmotionClassifier(num_classes=len(EMOTION_LABELS))
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in range(10):
+    for epoch in range(15):
         total_loss = 0
         for x, y in dataloader:
             outputs = model(x)
